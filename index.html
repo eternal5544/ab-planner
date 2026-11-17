@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="A/B Planner">
+<meta name="theme-color" content="#1e3a8a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<title>A/B Planner</title>
+<style>
+:root{--bg:#f2f4f9;--card:#fff;--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--a:#2563eb;--a2:#1e40af;--b:#16a34a;--b2:#15803d;--red:#dc2626;--chip:#eef2f7}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1120;--card:#162033;--text:#f1f5f9;--muted:#94a3b8;--line:#253147;--chip:#1f2a40}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,Roboto,sans-serif;overscroll-behavior:none}
+body{padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+.hero{padding:calc(18px + env(safe-area-inset-top)) 20px 26px;color:#fff;border-radius:0 0 28px 28px;background:linear-gradient(160deg,#1e3a8a,#2563eb);transition:background .3s}
+.hero.B{background:linear-gradient(160deg,#14532d,#16a34a)}.hero.off{background:linear-gradient(160deg,#334155,#64748b)}
+.hero small{opacity:.8;font-weight:600;letter-spacing:.04em;text-transform:uppercase;font-size:12px}
+.hero h1{margin:4px 0 0;font-size:34px;font-weight:800}
+.hero .sub{opacity:.9;margin-top:4px}
+.daynav{display:flex;gap:8px;margin-top:14px}
+.daynav button{background:rgba(255,255,255,.18);border:none;color:#fff;border-radius:12px;padding:8px 14px;font-size:15px;font-weight:600}
+main{padding:16px;max-width:640px;margin:-10px auto 0}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.card h2{margin:0 0 10px;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.cls{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.cls:last-child{border:none}.dot{width:10px;height:10px;border-radius:50%;background:var(--a)}.B .dot{background:var(--b)}
+.cls .n{flex:1;font-weight:600}.cnt{font-size:12px;background:var(--chip);padding:3px 9px;border-radius:999px;color:var(--muted)}
+.cnt.has{background:#fee2e2;color:var(--red)}
+.hw{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.hw:last-child{border:none}
+.chk{width:26px;height:26px;border-radius:50%;border:2px solid var(--muted);flex:none;display:grid;place-items:center;background:none;color:#fff;font-size:15px}
+.hw.done .chk{background:var(--b);border-color:var(--b)}
+.hw .t{flex:1;min-width:0}.hw .title{font-weight:600;word-wrap:break-word}.hw.done .title{text-decoration:line-through;color:var(--muted)}
+.meta{font-size:13px;color:var(--muted);margin-top:2px}.late{color:var(--red);font-weight:600}.soon{color:#d97706;font-weight:600}
+.x{background:none;border:none;color:var(--muted);font-size:20px;padding:4px 6px}
+.empty{color:var(--muted);text-align:center;padding:14px 0}
+input,select{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--text);font-size:16px;margin:5px 0;font-family:inherit;-webkit-appearance:none}
+.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+.btn{width:100%;padding:14px;border:none;border-radius:14px;background:var(--a);color:#fff;font-size:17px;font-weight:700;margin-top:8px}
+.seg{display:flex;background:var(--chip);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;border:none;background:none;color:var(--muted);padding:9px;border-radius:10px;font-weight:600;font-size:14px}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.ex{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.ex:last-child{border:none}
+.ex .n{flex:1;font-weight:600}.ex.done .n{color:var(--muted);text-decoration:line-through}.ex.done .chk{background:var(--b);border-color:var(--b)}
+.bar{height:8px;background:var(--chip);border-radius:9px;overflow:hidden;margin:4px 0 6px}.bar i{display:block;height:100%;background:var(--b);transition:width .3s}
+.week{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.wd{text-align:center;padding:10px 0;border-radius:12px;background:var(--chip);font-size:12px;color:var(--muted)}
+.wd b{display:block;font-size:17px;color:#fff;margin-top:4px;border-radius:8px;padding:2px 0}
+.wd.A b{background:var(--a)}.wd.B b{background:var(--b)}.wd.now{outline:2px solid var(--text)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:color-mix(in srgb,var(--card) 88%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);padding:6px 0 calc(6px + env(safe-area-inset-bottom));z-index:9}
+nav.tabs button{flex:1;background:none;border:none;color:var(--muted);font-size:11px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px}
+nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
+.badge{background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:1px 6px;position:relative;top:-30px;left:14px;height:0;overflow:visible}
+.page{display:none}.page.on{display:block;animation:f .2s}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+.toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
+.toast.show{opacity:1}
+.tip{font-size:13px;color:var(--muted);line-height:1.45}
+</style>
+</head>
+<body>
+<header class="hero" id="hero">
+  <small id="heroDate"></small>
+  <h1 id="heroTitle"></h1>
+  <div class="sub" id="heroSub"></div>
+  <div class="daynav" id="dayNav"><button id="prev">‹ Prev</button><button id="todayBtn">Today</button><button id="next">Next ›</button></div>
+</header>
+
+<main>
+<section class="page on" id="p-today">
+  <div class="card" id="clsCard"><h2>Classes</h2><div id="clsList"></div></div>
+  <div class="card"><h2>Homework due</h2><div id="dueList"></div></div>
+  <div class="card"><h2>Gym</h2><div id="gymToday"></div></div>
+  <div class="card"><h2>This week</h2><div class="week" id="week"></div></div>
+</section>
+
+<section class="page" id="p-hw">
+  <div class="card">
+    <h2>New assignment</h2>
+    <input id="hwTitle" placeholder="e.g. Chapter 5 worksheet" enterkeyhint="done">
+    <div class="row"><select id="hwClass"></select><input id="hwDue" type="date"></div>
+    <button class="btn" id="hwAdd">Add homework</button>
+    <div class="tip" style="margin-top:8px">No date? It's set to your next class for that subject.</div>
+  </div>
+  <div class="card">
+    <div class="seg" id="hwSeg"><button data-v="open" class="on">To do</button><button data-v="done">Done</button><button data-v="all">All</button></div>
+    <div id="hwList"></div>
+  </div>
+</section>
+
+<section class="page" id="p-gym">
+  <div class="card">
+    <div class="seg" id="gymSeg"><button data-v="upper" class="on">Upper body</button><button data-v="lower">Lower body</button></div>
+    <div class="meta" id="gymProg"></div><div class="bar"><i id="gymBar"></i></div>
+    <div id="gymList"></div>
+    <button class="btn" id="gymReset" style="background:var(--chip);color:var(--text)">Reset today</button>
+  </div>
+  <div class="card tip">Warm up 5–10 minutes first. Rest 60–90 seconds between sets, and add a little weight once your last set feels easy. Upper body is on A days, lower body on B days.</div>
+</section>
+</main>
+
+<nav class="tabs">
+  <button data-p="today" class="on"><span>📅</span>Today</button>
+  <button data-p="hw"><span>📝</span>Homework<div class="badge" id="hwBadge"></div></button>
+  <button data-p="gym"><span>🏋️</span>Gym</button>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+const A=["Life Science: Bio","English 3","Spanish 3","Global Studies"];
+const B=["Geometry","Religion 3","Physical Education 3","Foundation: Software Development"];
+const GYM={upper:[["Bench press or push-ups","3 × 8–12"],["Dumbbell or barbell rows","3 × 8–12"],["Overhead shoulder press","3 × 8–12"],["Lat pulldowns or pull-ups","3 × 8–12"],["Bicep curls","3 × 10–12"],["Tricep dips or pushdowns","3 × 10–12"]],
+lower:[["Squats (goblet if newer)","3 × 8–12"],["Romanian deadlifts","3 × 8–12"],["Walking lunges","3 × 10 per leg"],["Leg press or step-ups","3 × 10–12"],["Calf raises","3 × 12–15"],["Plank","3 × 30–45 sec"]]};
+const ANCHOR=new Date(2026,10,20,12),DN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const $=id=>document.getElementById(id);
+const noon=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate(),12);
+function type(d){const w=d.getDay();if(w==1||w==3)return"A";if(w==2||w==4)return"B";if(w==5){const k=Math.round((noon(d)-ANCHOR)/6048e5);return((k%2)+2)%2?"B":"A"}return null}
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const fromIso=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d,12)};
+const nice=d=>DN[d.getDay()]+", "+d.toLocaleDateString("en-US",{month:"short",day:"numeric"});
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today=()=>iso(new Date());
+function nextClassDate(cls){const isA=A.includes(cls);const d=noon(new Date());for(let i=0;i<30;i++){d.setDate(d.getDate()+1);const t=type(d);if(t&&(t=="A")==isA)return iso(d)}return iso(d)}
+let hw=JSON.parse(localStorage.getItem("hw")||"[]"),view=noon(new Date()),hwF="open",gymP=type(new Date())=="B"?"lower":"upper";
+const save=()=>localStorage.setItem("hw",JSON.stringify(hw));
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1600)}
+function dueText(h){if(h.done)return"Done";const t=today(),tm=iso(new Date(Date.now()+864e5));
+ if(h.due<t)return'<span class="late">Late · was due '+nice(fromIso(h.due))+"</span>";if(h.due==t)return'<span class="soon">Due today</span>';if(h.due==tm)return'<span class="soon">Due tomorrow</span>';return"Due "+nice(fromIso(h.due))}
+const hwItem=h=>`<div class="hw ${h.done?"done":""}"><button class="chk" data-t="${h.id}">${h.done?"✓":""}</button><div class="t"><div class="title">${esc(h.title)}</div><div class="meta">${esc(h.cls)} · ${dueText(h)}</div></div><button class="x" data-d="${h.id}">✕</button></div>`;
+function renderToday(){const t=type(view),isToday=iso(view)==today();
+ $("hero").className="hero "+(t||"off");$("heroDate").textContent=isToday?"Today · "+nice(view):nice(view);
+ $("heroTitle").textContent=t?t+" Day":"No School";
+ $("heroSub").textContent=t?(t=="A"?"Upper body at the gym 💪":"Lower body at the gym 🦵"):"Rest up for the week.";
+ const cls=t=="A"?A:t=="B"?B:[];$("clsCard").style.display=t?"":"none";$("clsCard").className="card "+(t||"");
+ $("clsList").innerHTML=cls.map(c=>{const n=hw.filter(h=>!h.done&&h.cls==c).length;return`<div class="cls"><span class="dot"></span><span class="n">${c}</span><span class="cnt ${n?"has":""}">${n?n+" to do":"clear"}</span></div>`}).join("");
+ const due=hw.filter(h=>h.due==iso(view));$("dueList").innerHTML=due.length?due.map(hwItem).join(""):'<div class="empty">Nothing due 🎉</div>';
+ $("gymToday").innerHTML=t?`<div class="cls"><span class="n">${t=="A"?"Upper body":"Lower body"}</span><button class="cnt" style="border:none" onclick="go('gym')">Open ›</button></div>`:'<div class="empty">Rest day</div>';
+ const mon=noon(view);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));let w="";
+ for(let i=0;i<5;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const tt=type(d);w+=`<div class="wd ${tt} ${iso(d)==iso(view)?"now":""}" data-go="${iso(d)}">${DN[d.getDay()].slice(0,3)}<b>${tt}</b></div>`}$("week").innerHTML=w}
+function renderHw(){const l=hw.filter(h=>hwF=="all"||(hwF=="done"?h.done:!h.done)).sort((a,b)=>a.done-b.done||a.due.localeCompare(b.due));
+ $("hwList").innerHTML=l.length?l.map(hwItem).join(""):`<div class="empty">${hwF=="done"?"Nothing finished yet.":"All caught up 🎉"}</div>`;
+ const open=hw.filter(h=>!h.done&&h.due<=iso(new Date(Date.now()+864e5))).length;$("hwBadge").textContent=open||"";$("hwBadge").style.display=open?"":"none"}
+const gk=()=>"gym-"+today();
+function renderGym(){const d=JSON.parse(localStorage.getItem(gk())||"{}"),L=GYM[gymP];let n=0;
+ $("gymList").innerHTML=L.map((e,i)=>{const on=d[gymP+i];if(on)n++;return`<div class="ex ${on?"done":""}"><button class="chk" data-g="${gymP+i}">${on?"✓":""}</button><span class="n">${e[0]}</span><span class="meta">${e[1]}</span></div>`}).join("");
+ $("gymProg").textContent=n==L.length?"Workout complete! 🔥":n+" of "+L.length+" done";$("gymBar").style.width=(n/L.length*100)+"%";
+ document.querySelectorAll("#gymSeg button").forEach(b=>b.classList.toggle("on",b.dataset.v==gymP))}
+const all=()=>{renderToday();renderHw();renderGym()};
+function go(p){document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.p==p));document.querySelectorAll(".page").forEach(s=>s.classList.toggle("on",s.id=="p-"+p));$("dayNav").style.display=p=="today"?"":"none";scrollTo(0,0)}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.p));
+$("prev").onclick=()=>{view.setDate(view.getDate()-1);renderToday()};$("next").onclick=()=>{view.setDate(view.getDate()+1);renderToday()};$("todayBtn").onclick=()=>{view=noon(new Date());renderToday()};
+$("hwClass").innerHTML='<optgroup label="A day">'+A.map(c=>`<option>${c}</option>`).join("")+'</optgroup><optgroup label="B day">'+B.map(c=>`<option>${c}</option>`).join("")+"</optgroup>";
+function add(){const t=$("hwTitle").value.trim();if(!t){$("hwTitle").focus();return}const cls=$("hwClass").value,due=$("hwDue").value||nextClassDate(cls);
+ hw.push({id:Date.now(),title:t,cls,due,done:false});save();$("hwTitle").value="";$("hwDue").value="";$("hwTitle").blur();all();toast("Added · due "+nice(fromIso(due)))}
+$("hwAdd").onclick=add;$("hwTitle").onkeydown=e=>{if(e.key=="Enter")add()};
+document.querySelectorAll("#hwSeg button").forEach(b=>b.onclick=()=>{hwF=b.dataset.v;document.querySelectorAll("#hwSeg button").forEach(x=>x.classList.toggle("on",x==b));renderHw()});
+document.querySelectorAll("#gymSeg button").forEach(b=>b.onclick=()=>{gymP=b.dataset.v;renderGym()});
+$("gymReset").onclick=()=>{localStorage.removeItem(gk());renderGym()};
+document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[data-d],[data-g],[data-go]");if(!el)return;
+ if(el.dataset.t){const h=hw.find(x=>x.id==el.dataset.t);h.done=!h.done;save();all();if(h.done)toast("Nice work ✓")}
+ else if(el.dataset.d){if(confirm("Delete this assignment?")){hw=hw.filter(x=>x.id!=el.dataset.d);save();all()}}
+ else if(el.dataset.g){const d=JSON.parse(localStorage.getItem(gk())||"{}");d[el.dataset.g]=!d[el.dataset.g];localStorage.setItem(gk(),JSON.stringify(d));renderGym()}
+ else if(el.dataset.go){view=fromIso(el.dataset.go);renderToday()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
+if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
+all();
+</script>
+</body>
+</html>
