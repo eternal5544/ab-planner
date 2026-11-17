@@ -60,11 +60,28 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 .page{display:none}.page.on{display:block;animation:f .2s}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:600;opacity:0;transition:.25s;pointer-events:none}
 .toast.show{opacity:1}
+.clock{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px}
+.clock .time{font-size:44px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.clock .ampm{font-size:18px;font-weight:700;opacity:.85;margin-left:4px}
+.clock .sec{font-size:18px;font-weight:700;opacity:.6;font-variant-numeric:tabular-nums}
+.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.calhead b{font-size:18px}.calhead button{background:var(--chip);border:none;color:var(--text);border-radius:10px;padding:8px 14px;font-size:16px;font-weight:700}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal .h{font-size:11px;color:var(--muted);font-weight:700;padding:4px 0}
+.cal .c{aspect-ratio:1;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:600;font-size:15px;position:relative;background:var(--chip);color:var(--muted)}
+.cal .c.A{background:#dbeafe;color:#1e40af}.cal .c.B{background:#dcfce7;color:#166534}
+@media(prefers-color-scheme:dark){.cal .c.A{background:#1e3a8a;color:#dbeafe}.cal .c.B{background:#14532d;color:#dcfce7}}
+.cal .c small{font-size:9px;font-weight:800;opacity:.8}
+.cal .c.today{outline:2.5px solid var(--text)}.cal .c.blank{background:none}
+.cal .c i{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
 .tip{font-size:13px;color:var(--muted);line-height:1.45}
 </style>
 </head>
 <body>
 <header class="hero" id="hero">
+  <div class="clock"><div><span class="time" id="clkT"></span><span class="sec" id="clkS"></span><span class="ampm" id="clkP"></span></div></div>
   <small id="heroDate"></small>
   <h1 id="heroTitle"></h1>
   <div class="sub" id="heroSub"></div>
@@ -93,6 +110,15 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
   </div>
 </section>
 
+<section class="page" id="p-cal">
+  <div class="card">
+    <div class="calhead"><button id="cPrev">‹</button><b id="cTitle"></b><button id="cNext">›</button></div>
+    <div class="cal" id="cal"></div>
+    <div class="legend"><span style="--c:var(--a)">A day</span><span style="--c:var(--b)">B day</span><span style="--c:var(--red)">Homework due</span></div>
+  </div>
+  <div class="card tip">Tap any day to see its classes, homework, and workout.</div>
+</section>
+
 <section class="page" id="p-gym">
   <div class="card">
     <div class="seg" id="gymSeg"><button data-v="upper" class="on">Upper body</button><button data-v="lower">Lower body</button></div>
@@ -107,6 +133,7 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 <nav class="tabs">
   <button data-p="today" class="on"><span>📅</span>Today</button>
   <button data-p="hw"><span>📝</span>Homework<div class="badge" id="hwBadge"></div></button>
+  <button data-p="cal"><span>🗓️</span>Calendar</button>
   <button data-p="gym"><span>🏋️</span>Gym</button>
 </nav>
 <div class="toast" id="toast"></div>
@@ -150,7 +177,19 @@ function renderGym(){const d=JSON.parse(localStorage.getItem(gk())||"{}"),L=GYM[
  $("gymList").innerHTML=L.map((e,i)=>{const on=d[gymP+i];if(on)n++;return`<div class="ex ${on?"done":""}"><button class="chk" data-g="${gymP+i}">${on?"✓":""}</button><span class="n">${e[0]}</span><span class="meta">${e[1]}</span></div>`}).join("");
  $("gymProg").textContent=n==L.length?"Workout complete! 🔥":n+" of "+L.length+" done";$("gymBar").style.width=(n/L.length*100)+"%";
  document.querySelectorAll("#gymSeg button").forEach(b=>b.classList.toggle("on",b.dataset.v==gymP))}
-const all=()=>{renderToday();renderHw();renderGym()};
+let calM=noon(new Date());calM.setDate(1);
+function renderCal(){const y=calM.getFullYear(),m=calM.getMonth();$("cTitle").textContent=calM.toLocaleDateString("en-US",{month:"long",year:"numeric"});
+ let h=["S","M","T","W","T","F","S"].map(d=>`<div class="h">${d}</div>`).join("");const first=new Date(y,m,1,12).getDay(),n=new Date(y,m+1,0).getDate();
+ for(let i=0;i<first;i++)h+='<div class="c blank"></div>';
+ for(let d=1;d<=n;d++){const dt=new Date(y,m,d,12),t=type(dt),k=iso(dt),due=hw.some(x=>!x.done&&x.due==k);
+  h+=`<div class="c ${t||""} ${k==today()?"today":""}" data-cal="${k}">${d}${t?`<small>${t}</small>`:""}${due?"<i></i>":""}</div>`}
+ $("cal").innerHTML=h}
+$("cPrev").onclick=()=>{calM.setMonth(calM.getMonth()-1);renderCal()};$("cNext").onclick=()=>{calM.setMonth(calM.getMonth()+1);renderCal()};
+let lastDay=today();
+function tick(){const d=new Date();let h=d.getHours();const p=h>=12?"PM":"AM";h=h%12||12;
+ $("clkT").textContent=h+":"+String(d.getMinutes()).padStart(2,"0");$("clkP").textContent=p;$("clkS").textContent=":"+String(d.getSeconds()).padStart(2,"0");
+ if(today()!=lastDay){const wasToday=iso(view)==lastDay;lastDay=today();if(wasToday)view=noon(new Date());all()}}
+const all=()=>{renderToday();renderHw();renderGym();renderCal()};
 function go(p){document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.p==p));document.querySelectorAll(".page").forEach(s=>s.classList.toggle("on",s.id=="p-"+p));$("dayNav").style.display=p=="today"?"":"none";scrollTo(0,0)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.p));
 $("prev").onclick=()=>{view.setDate(view.getDate()-1);renderToday()};$("next").onclick=()=>{view.setDate(view.getDate()+1);renderToday()};$("todayBtn").onclick=()=>{view=noon(new Date());renderToday()};
@@ -161,14 +200,15 @@ $("hwAdd").onclick=add;$("hwTitle").onkeydown=e=>{if(e.key=="Enter")add()};
 document.querySelectorAll("#hwSeg button").forEach(b=>b.onclick=()=>{hwF=b.dataset.v;document.querySelectorAll("#hwSeg button").forEach(x=>x.classList.toggle("on",x==b));renderHw()});
 document.querySelectorAll("#gymSeg button").forEach(b=>b.onclick=()=>{gymP=b.dataset.v;renderGym()});
 $("gymReset").onclick=()=>{localStorage.removeItem(gk());renderGym()};
-document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[data-d],[data-g],[data-go]");if(!el)return;
+document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[data-d],[data-g],[data-go],[data-cal]");if(!el)return;
  if(el.dataset.t){const h=hw.find(x=>x.id==el.dataset.t);h.done=!h.done;save();all();if(h.done)toast("Nice work ✓")}
  else if(el.dataset.d){if(confirm("Delete this assignment?")){hw=hw.filter(x=>x.id!=el.dataset.d);save();all()}}
  else if(el.dataset.g){const d=JSON.parse(localStorage.getItem(gk())||"{}");d[el.dataset.g]=!d[el.dataset.g];localStorage.setItem(gk(),JSON.stringify(d));renderGym()}
- else if(el.dataset.go){view=fromIso(el.dataset.go);renderToday()}});
+ else if(el.dataset.go){view=fromIso(el.dataset.go);renderToday()}
+ else if(el.dataset.cal){view=fromIso(el.dataset.cal);renderToday();go("today")}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
 if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
-all();
+all();tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
 </script>
 </body>
 </html>
