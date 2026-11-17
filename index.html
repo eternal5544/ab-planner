@@ -111,6 +111,19 @@ input[type=time]{-webkit-appearance:auto;appearance:auto;min-height:44px}
 .sigil-quote{position:absolute;right:-36px;bottom:-50px;width:200px;height:340px;opacity:.1;transform:rotate(10deg);z-index:0}
 .quote>*{position:relative;z-index:1}
 .quote>.sigil{position:absolute;z-index:0}
+
+.dues{padding:14px 16px}
+.dues h2{text-transform:none;letter-spacing:0;font-size:15px;font-weight:800;color:var(--text);margin:0 0 4px;line-height:1.35}
+.dues .prog{font-size:13px;color:var(--muted);margin:0 0 6px}
+.dues .bar{margin:0 0 6px}
+.dues.A .bar i{background:var(--a)}.dues.B .bar i{background:var(--b)}
+.dues .hw{padding:7px 0}
+.hw .title{cursor:text}
+.hw input.edit{margin:0;padding:8px 10px;font-size:16px;font-weight:600}
+.nudge.mini{padding:12px 16px}
+.nudge.mini .lead{font-size:16px;margin:0 0 2px}
+.nudge.mini .sub{margin:0}
+.nudge.mini .btn{display:none}
 </style>
 </head>
 <body>
@@ -153,10 +166,10 @@ input[type=time]{-webkit-appearance:auto;appearance:auto;min-height:44px}
 
 <main>
 <section class="page on" id="p-today">
+  <div id="dueSections"></div>
   <div id="hwNudge"></div>
   <div class="card quote"><div class="sigil sigil-quote" aria-hidden="true"><svg viewBox="0 0 100 176"><use href="#sigil"/></svg></div><h2>✨ Anime quote of the day</h2><div class="q" id="qTxt"></div><div class="who" id="qWho"></div></div>
   <div class="card" id="clsCard"><h2>Classes</h2><div id="clsList"></div></div>
-  <div class="card"><h2>Homework due</h2><div id="dueList"></div></div>
   <div class="card"><h2>Gym</h2><div id="gymToday"></div></div>
   <div class="card"><h2>This week</h2><div class="week" id="week"></div></div>
   <div class="card ver">
@@ -178,6 +191,10 @@ input[type=time]{-webkit-appearance:auto;appearance:auto;min-height:44px}
       <label class="meta" for="rmTime" style="flex:none;font-weight:600">Time</label>
       <input id="rmTime" type="time">
     </div>
+  </div>
+  <div class="card notif">
+    <div class="t"><b>Auto-add homework</b><div class="meta" id="autoTxt">Adds one homework item per class on each school day. Rename, check off, or delete them anytime.</div></div>
+    <label class="switch"><input type="checkbox" id="autoOn"><span></span></label>
   </div>
   <div class="card">
     <h2>New assignment</h2>
@@ -222,7 +239,7 @@ input[type=time]{-webkit-appearance:auto;appearance:auto;min-height:44px}
 <div class="upd" id="upd"><span>✨</span><b>A new version is ready</b><button class="no" id="updNo">Later</button><button class="go" id="updGo">Update</button></div>
 
 <script>
-const APP_VERSION=6;
+const APP_VERSION=7;
 const QUOTES=[{"q": "People's dreams... never end!", "c": "Marshall D. Teach", "a": "One Piece"}, {"q": "I don't want to conquer anything. I just think the guy with the most freedom in this whole ocean is the Pirate King!", "c": "Monkey D. Luffy", "a": "One Piece"}, {"q": "When do you think people die? When they are forgotten.", "c": "Dr. Hiriluk", "a": "One Piece"}, {"q": "Nothing happened.", "c": "Roronoa Zoro", "a": "One Piece"}, {"q": "I'm not gonna run away, I never go back on my word! That's my nindo: my ninja way!", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "Those who break the rules are scum, but those who abandon their friends are worse than scum.", "c": "Kakashi Hatake", "a": "Naruto"}, {"q": "Hard work is worthless for those that don't believe in themselves.", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "A dropout will beat a genius through hard work.", "c": "Rock Lee", "a": "Naruto"}, {"q": "A place where someone still thinks about you is a place you can call home.", "c": "Jiraiya", "a": "Naruto Shippuden"}, {"q": "People live their lives bound by what they accept as correct and true.", "c": "Itachi Uchiha", "a": "Naruto Shippuden"}, {"q": "A lesson without pain is meaningless. That's because no one can gain without sacrificing something.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "Stand up and walk. Keep moving forward. You've got two good legs.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "If you win, you live. If you lose, you die. If you don't fight, you can't win!", "c": "Eren Yeager", "a": "Attack on Titan"}, {"q": "The only thing we're allowed to do is believe that we won't regret the choice we made.", "c": "Levi Ackerman", "a": "Attack on Titan"}, {"q": "This world is cruel, but also very beautiful.", "c": "Mikasa Ackerman", "a": "Attack on Titan"}, {"q": "Set your heart ablaze.", "c": "Kyojuro Rengoku", "a": "Demon Slayer"}, {"q": "No matter how many people you may lose, you have no choice but to go on living.", "c": "Tanjiro Kamado", "a": "Demon Slayer"}, {"q": "Throughout heaven and earth, I alone am the honored one.", "c": "Satoru Gojo", "a": "Jujutsu Kaisen"}, {"q": "You should enjoy the little detours to the fullest. Because that's where you'll find the things more important than what you want.", "c": "Ging Freecss", "a": "Hunter x Hunter"}, {"q": "Plus Ultra!", "c": "All Might", "a": "My Hero Academia"}, {"q": "It's fine now. Why? Because I am here!", "c": "All Might", "a": "My Hero Academia"}, {"q": "Whatever happens, happens.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'm not going there to die. I'm going to find out if I'm really alive.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'll take a potato chip... and eat it!", "c": "Light Yagami", "a": "Death Note"}, {"q": "El Psy Kongroo.", "c": "Rintaro Okabe", "a": "Steins;Gate"}, {"q": "Don't believe in yourself. Believe in me! Believe in the Kamina who believes in you!", "c": "Kamina", "a": "Gurren Lagann"}, {"q": "Just who the hell do you think I am?!", "c": "Simon", "a": "Gurren Lagann"}, {"q": "I am the bone of my sword.", "c": "Archer", "a": "Fate/stay night: Unlimited Blade Works"}, {"q": "100 push-ups, 100 sit-ups, 100 squats, and a 10 km run every single day!", "c": "Saitama", "a": "One Punch Man"}, {"q": "Surpassing your limits right here, right now! That's my magic!", "c": "Asta", "a": "Black Clover"}, {"q": "Talent is something you make bloom, instinct is something you polish.", "c": "Toru Oikawa", "a": "Haikyu!!"}, {"q": "You can die anytime, but living takes true courage.", "c": "Kenshin Himura", "a": "Rurouni Kenshin"}, {"q": "If you don't like your destiny, don't accept it.", "c": "Naruto Uzumaki", "a": "Naruto"}];
 const A=["Life Science: Bio","English 3","Spanish 3","Global Studies"];
 const B=["Geometry","Religion 3","Physical Education 3","Foundation: Software Development"];
@@ -238,47 +255,74 @@ const nice=d=>DN[d.getDay()]+", "+d.toLocaleDateString("en-US",{month:"short",da
 const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const today=()=>iso(new Date());
 function nextClassDate(cls){const isA=A.includes(cls);const d=noon(new Date());for(let i=0;i<30;i++){d.setDate(d.getDate()+1);const t=type(d);if(t&&(t=="A")==isA)return iso(d)}return iso(d)}
+const shortNice=d=>d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+function nextSchool(d){const x=noon(d instanceof Date?d:fromIso(d));for(let i=0;i<21;i++){x.setDate(x.getDate()+1);if(type(x))return noon(x)}return null}
+function classesOf(d){const t=type(d);return t=="A"?A:t=="B"?B:[]}
+const autoOn=()=>localStorage.getItem("autoHw")!="0";
+const dismissed=()=>JSON.parse(localStorage.getItem("hwDismissed")||"[]");
+function autoId(dateIso,cls){return "auto|"+dateIso+"|"+cls}
+function defaultTitle(cls){return cls+" homework"}
+function shortCls(c){return c.includes(":")?c.split(":").pop().trim():c}
+function ensureAutoFor(d){if(!autoOn()||!d)return;const t=type(d);if(!t)return;
+ const dateIso=iso(d),skip=dismissed(),cls=classesOf(d);let added=false;
+ for(const c of cls){const id=autoId(dateIso,c);if(skip.includes(id)||hw.some(h=>h.id==id))continue;
+  hw.push({id,title:defaultTitle(c),cls:c,due:dateIso,done:false,auto:true});added=true}
+ if(added)save()}
+function seedAuto(){if(!autoOn())return;ensureAutoFor(noon(new Date()));const n=nextSchool(new Date());if(n)ensureAutoFor(n);ensureAutoFor(view);const nv=nextSchool(view);if(nv)ensureAutoFor(nv)}
 let hw=JSON.parse(localStorage.getItem("hw")||"[]"),view=noon(new Date()),hwF="open",gymP=type(new Date())=="B"?"lower":"upper";
 const save=()=>localStorage.setItem("hw",JSON.stringify(hw));
 function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("show"),1600)}
-function dueText(h){if(h.done)return"Done";const t=today(),tm=iso(new Date(Date.now()+864e5));
- if(h.due<t)return'<span class="late">Late · was due '+nice(fromIso(h.due))+"</span>";if(h.due==t)return'<span class="soon">Due today</span>';if(h.due==tm)return'<span class="soon">Due tomorrow</span>';return"Due "+nice(fromIso(h.due))}
-const hwItem=h=>`<div class="hw ${h.done?"done":""}"><button class="chk" data-t="${h.id}">${h.done?"✓":""}</button><div class="t"><div class="title">${esc(h.title)}</div><div class="meta">${esc(h.cls)} · ${dueText(h)}</div></div><button class="x" data-d="${h.id}">✕</button></div>`;
+function dueText(h){if(h.done)return"Done";const t=today(),tm=iso(new Date(Date.now()+864e5)),ns=nextSchool(new Date()),nsi=ns?iso(ns):"";
+ if(h.due<t)return'<span class="late">Late · was due '+shortNice(fromIso(h.due))+"</span>";if(h.due==t)return'<span class="soon">Due today · '+shortNice(fromIso(h.due))+"</span>";if(h.due==tm)return'<span class="soon">Due tomorrow · '+shortNice(fromIso(h.due))+"</span>";if(h.due==nsi)return'<span class="soon">Due '+shortNice(fromIso(h.due))+"</span>";return"Due "+shortNice(fromIso(h.due))}
+const hwItem=h=>`<div class="hw ${h.done?"done":""}"><button class="chk" data-t="${esc(String(h.id))}">${h.done?"✓":""}</button><div class="t"><div class="title" data-e="${esc(String(h.id))}" title="Tap to rename">${esc(h.title)}</div><div class="meta">${esc(h.cls)} · ${dueText(h)}</div></div><button class="x" data-d="${esc(String(h.id))}">✕</button></div>`;
 function renderQuote(){const d=new Date(),n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
  let i=((n*7919)%QUOTES.length+QUOTES.length)%QUOTES.length;const q=QUOTES[i];
  $("qTxt").textContent="“"+q.q+"”";$("qWho").innerHTML="— <b>"+esc(q.c)+"</b>, "+esc(q.a)}
+function openHorizon(){const t=today(),ns=nextSchool(new Date()),nsi=ns?iso(ns):t;
+ const late=hw.filter(h=>!h.done&&h.due<t),dt=hw.filter(h=>!h.done&&h.due==t),dn=hw.filter(h=>!h.done&&h.due==nsi&&h.due!=t);
+ return {t,ns,nsi,late,dt,dn,items:[...late,...dt,...dn]}}
 function renderNudge(){const el=$("hwNudge");if(!el)return;
  if(iso(view)!=today()){el.innerHTML="";return}
- const t=today(),tm=iso(new Date(Date.now()+864e5));
- const late=hw.filter(h=>!h.done&&h.due<t),dt=hw.filter(h=>!h.done&&h.due==t),dm=hw.filter(h=>!h.done&&h.due==tm);
- const items=[...late,...dt,...dm];
+ const {late,dt,dn,items,ns}=openHorizon();
  if(items.length){
   const n=items.length,bits=[];
   if(late.length)bits.push(late.length+" late");
   if(dt.length)bits.push(dt.length+" due today");
-  if(dm.length)bits.push(dm.length+" due tomorrow");
-  const subj=[...new Set(items.map(h=>h.cls))].join(" · ");
-  el.innerHTML=`<div class="card nudge"><h2>Do your homework</h2><div class="lead">${n} assignment${n>1?"s":""} to finish</div><div class="sub">${bits.join(" · ")}<br>${esc(subj)}</div><button class="btn" id="nudgeGo">Open Homework</button></div>`;
+  if(dn.length)bits.push(dn.length+" due "+(ns&&iso(ns)==iso(new Date(Date.now()+864e5))?"tomorrow":ns?shortNice(ns):"next"));
+  el.innerHTML=`<div class="card nudge mini"><h2>Do your homework</h2><div class="lead">${n} item${n>1?"s":""} to finish</div><div class="sub">${bits.join(" · ")}</div></div>`;
  }else{
-  const nd=new Date(Date.now()+864e5),typ=type(nd);
-  if(!typ){el.innerHTML="";return}
-  const cls=typ=="A"?A:B;
-  el.innerHTML=`<div class="card nudge soft"><h2>Tomorrow is a ${typ} day</h2><div class="lead">Add any homework you got</div><div class="sub">${cls.map(esc).join(" · ")}</div><button class="btn" id="nudgeGo">Add homework</button></div>`;
- }
- const b=$("nudgeGo");if(b)b.onclick=()=>go("hw")}
-function renderToday(){renderQuote();renderNudge();const t=type(view),isToday=iso(view)==today();
+  const nd=nextSchool(new Date());if(!nd){el.innerHTML="";return}
+  const typ=type(nd);
+  el.innerHTML=`<div class="card nudge soft mini"><h2>You're all caught up</h2><div class="sub">Next up · ${shortNice(nd)} (${typ} day)</div></div>`;
+ }}
+function dueHeading(d,kind){const t=type(d),isToday=iso(d)==today(),tm=iso(new Date(Date.now()+864e5)),date=shortNice(d);
+ if(!t)return(isToday?"Today — ":"")+date+" · No school";
+ const ab=" ("+t+" day)";
+ if(kind=="view")return(isToday?"Due today — ":"Due ")+date+ab;
+ if(iso(d)==tm)return"Due tomorrow — "+date+ab;
+ return"Due "+date+ab}
+function renderDueCard(d,kind){const t=type(d),list=t?hw.filter(h=>h.due==iso(d)).sort((a,b)=>a.done-b.done||A.concat(B).indexOf(a.cls)-A.concat(B).indexOf(b.cls)):[];
+ const done=list.filter(h=>h.done).length;
+ let body;if(!t)body='<div class="empty">Enjoy the break</div>';
+ else if(!list.length)body='<div class="empty">Nothing due 🎉</div>';
+ else body=list.map(hwItem).join("");
+ const prog=list.length?`<div class="prog">${done} of ${list.length} done</div><div class="bar"><i style="width:${done/list.length*100}%"></i></div>`:"";
+ return `<div class="card dues ${t||"off"}"><h2>${dueHeading(d,kind)}</h2>${prog}${body}</div>`}
+function renderDueSections(){const box=$("dueSections");if(!box)return;
+ const first=noon(view),next=nextSchool(view);
+ box.innerHTML=renderDueCard(first,"view")+(next?renderDueCard(next,"next"):"")}
+function renderToday(){seedAuto();renderQuote();renderDueSections();renderNudge();const t=type(view),isToday=iso(view)==today();
  $("hero").className="hero "+(t||"off");$("heroDate").textContent=isToday?"Today · "+nice(view):nice(view);
  $("heroTitle").textContent=t?t+" Day":"No School";
  $("heroSub").textContent=t?(t=="A"?"Upper body at the gym 💪":"Lower body at the gym 🦵"):"Rest up for the week.";
  const cls=t=="A"?A:t=="B"?B:[];$("clsCard").style.display=t?"":"none";$("clsCard").className="card "+(t||"");
  $("clsList").innerHTML=cls.map(c=>{const n=hw.filter(h=>!h.done&&h.cls==c).length;return`<div class="cls"><span class="dot"></span><span class="n">${c}</span><span class="cnt ${n?"has":""}">${n?n+" to do":"clear"}</span></div>`}).join("");
- const due=hw.filter(h=>h.due==iso(view));$("dueList").innerHTML=due.length?due.map(hwItem).join(""):'<div class="empty">Nothing due 🎉</div>';
  $("gymToday").innerHTML=t?`<div class="cls"><span class="n">${t=="A"?"Upper body":"Lower body"}</span><button class="cnt" style="border:none" onclick="go('gym')">Open ›</button></div>`:'<div class="empty">Rest day</div>';
  const mon=noon(view);mon.setDate(mon.getDate()-((mon.getDay()+6)%7));let w="";
  for(let i=0;i<5;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);const tt=type(d);w+=`<div class="wd ${tt} ${iso(d)==iso(view)?"now":""}" data-go="${iso(d)}">${DN[d.getDay()].slice(0,3)}<b>${tt}</b></div>`}$("week").innerHTML=w}
 function renderHw(){const l=hw.filter(h=>hwF=="all"||(hwF=="done"?h.done:!h.done)).sort((a,b)=>a.done-b.done||a.due.localeCompare(b.due));
  $("hwList").innerHTML=l.length?l.map(hwItem).join(""):`<div class="empty">${hwF=="done"?"Nothing finished yet.":"All caught up 🎉"}</div>`;
- const open=hw.filter(h=>!h.done&&h.due<=iso(new Date(Date.now()+864e5))).length;$("hwBadge").textContent=open||"";$("hwBadge").style.display=open?"":"none"}
+ const {items}=openHorizon(),open=items.length;$("hwBadge").textContent=open||"";$("hwBadge").style.display=open?"":"none"}
 const gk=()=>"gym-"+today();
 function renderGym(){const d=JSON.parse(localStorage.getItem(gk())||"{}"),L=GYM[gymP];let n=0;
  $("gymList").innerHTML=L.map((e,i)=>{const on=d[gymP+i];if(on)n++;return`<div class="ex ${on?"done":""}"><button class="chk" data-g="${gymP+i}">${on?"✓":""}</button><span class="n">${e[0]}</span><span class="meta">${e[1]}</span></div>`}).join("");
@@ -297,14 +341,14 @@ function tick(){const d=new Date();let h=d.getHours();const p=h>=12?"PM":"AM";h=
  $("clkT").textContent=h+":"+String(d.getMinutes()).padStart(2,"0");$("clkP").textContent=p;$("clkS").textContent=":"+String(d.getSeconds()).padStart(2,"0");
  if(today()!=lastDay){const wasToday=iso(view)==lastDay;lastDay=today();if(wasToday)view=noon(new Date());all()}
  if(d.getHours()+":"+d.getMinutes()!=tick._hm){tick._hm=d.getHours()+":"+d.getMinutes();checkDue(false)}}
-const all=()=>{renderToday();renderHw();renderGym();renderCal()};
+const all=()=>{seedAuto();renderToday();renderHw();renderGym();renderCal()};
 function go(p){if(p!="hw"&&p!="cal"&&p!="gym")p="today";
  document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.p==p));document.querySelectorAll(".page").forEach(s=>s.classList.toggle("on",s.id=="p-"+p));$("dayNav").style.display=p=="today"?"":"none";
  const h=p=="today"?"#":"#"+p;if(location.hash!==h&&!(p=="today"&&(location.hash===""||location.hash==="#")))history.replaceState(null,"",p=="today"?location.pathname+location.search:h);
  scrollTo(0,0)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.p));
 window.addEventListener("hashchange",()=>go(location.hash.slice(1)));
-$("prev").onclick=()=>{view.setDate(view.getDate()-1);renderToday()};$("next").onclick=()=>{view.setDate(view.getDate()+1);renderToday()};$("todayBtn").onclick=()=>{view=noon(new Date());renderToday()};
+$("prev").onclick=()=>{view.setDate(view.getDate()-1);all()};$("next").onclick=()=>{view.setDate(view.getDate()+1);all()};$("todayBtn").onclick=()=>{view=noon(new Date());all()};
 $("hwClass").innerHTML='<optgroup label="A day">'+A.map(c=>`<option>${c}</option>`).join("")+'</optgroup><optgroup label="B day">'+B.map(c=>`<option>${c}</option>`).join("")+"</optgroup>";
 function add(){const t=$("hwTitle").value.trim();if(!t){$("hwTitle").focus();return}const cls=$("hwClass").value,due=$("hwDue").value||nextClassDate(cls);
  hw.push({id:Date.now(),title:t,cls,due,done:false});save();$("hwTitle").value="";$("hwDue").value="";$("hwTitle").blur();all();toast("Added · due "+nice(fromIso(due)))}
@@ -312,12 +356,20 @@ $("hwAdd").onclick=add;$("hwTitle").onkeydown=e=>{if(e.key=="Enter")add()};
 document.querySelectorAll("#hwSeg button").forEach(b=>b.onclick=()=>{hwF=b.dataset.v;document.querySelectorAll("#hwSeg button").forEach(x=>x.classList.toggle("on",x==b));renderHw()});
 document.querySelectorAll("#gymSeg button").forEach(b=>b.onclick=()=>{gymP=b.dataset.v;renderGym()});
 $("gymReset").onclick=()=>{localStorage.removeItem(gk());renderGym()};
-document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[data-d],[data-g],[data-go],[data-cal]");if(!el)return;
- if(el.dataset.t){const h=hw.find(x=>x.id==el.dataset.t);h.done=!h.done;save();all();if(h.done)toast("Nice work ✓")}
- else if(el.dataset.d){if(confirm("Delete this assignment?")){hw=hw.filter(x=>x.id!=el.dataset.d);save();all()}}
+function startEdit(el){const id=el.dataset.e,h=hw.find(x=>x.id==id);if(!h)return;
+ const inp=document.createElement("input");inp.className="edit";inp.value=h.title;el.replaceWith(inp);inp.focus();inp.select();
+ const commit=()=>{const v=inp.value.trim();if(v&&v!=h.title){h.title=v;save()}all()};
+ inp.onkeydown=e=>{if(e.key=="Enter"){e.preventDefault();inp.blur()}if(e.key=="Escape"){inp.onblur=null;all()}};
+ inp.onblur=commit}
+document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[data-d],[data-g],[data-go],[data-cal],[data-e]");if(!el)return;
+ if(el.dataset.e){startEdit(el);return}
+ if(el.dataset.t){const h=hw.find(x=>x.id==el.dataset.t);if(!h)return;h.done=!h.done;save();all();if(h.done)toast("Nice work ✓")}
+ else if(el.dataset.d){const id=el.dataset.d,h=hw.find(x=>x.id==id);if(!confirm(h&&h.auto?"Delete this assignment? It won't be auto-added again.":"Delete this assignment?"))return;
+  if(h&&h.auto){const d=dismissed();if(!d.includes(String(id))){d.push(String(id));localStorage.setItem("hwDismissed",JSON.stringify(d))}}
+  hw=hw.filter(x=>x.id!=id);save();all()}
  else if(el.dataset.g){const d=JSON.parse(localStorage.getItem(gk())||"{}");d[el.dataset.g]=!d[el.dataset.g];localStorage.setItem(gk(),JSON.stringify(d));renderGym()}
- else if(el.dataset.go){view=fromIso(el.dataset.go);renderToday()}
- else if(el.dataset.cal){view=fromIso(el.dataset.cal);renderToday();go("today")}});
+ else if(el.dataset.go){view=fromIso(el.dataset.go);all()}
+ else if(el.dataset.cal){view=fromIso(el.dataset.cal);all();go("today")}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
 let swReg=null,refreshing=false;
 function applyUpdate(w){if(w){w.postMessage("skip");$("upd").classList.remove("show")}}
@@ -354,6 +406,8 @@ function fmtTime(t){const[H,M]=(t||"19:00").split(":").map(Number);return(H%12||
 function pastRemindTime(){const[H,M]=remindTime().split(":").map(Number);const n=new Date();return n.getHours()>H||(n.getHours()==H&&n.getMinutes()>=M)}
 function rmUI(){$("rmOn").checked=remindOn();$("rmTime").value=remindTime();
  $("rmTxt").textContent=remindOn()?"You'll be reminded at "+fmtTime(remindTime())+" if homework is due tomorrow, today, or late.":"Daily reminder is off."}
+function autoUI(){$("autoOn").checked=autoOn();$("autoTxt").textContent=autoOn()?"On · each class on a school day gets a homework item. Rename, check off, or delete them.":"Off · existing items stay, but new days won't auto-fill."}
+$("autoOn").onchange=()=>{localStorage.setItem("autoHw",$("autoOn").checked?"1":"0");autoUI();all()};
 function nfUI(){const b=$("nfBtn"),t=$("nfTxt");rmUI();
  if(!canNotify()){t.textContent="On iPhone, add the app to your Home Screen first, then open it from there to get alerts.";b.style.display="none";return}
  const p=Notification.permission;b.style.display=p=="granted"?"none":"";
@@ -364,17 +418,20 @@ $("rmTime").onchange=()=>{const v=$("rmTime").value||"19:00";localStorage.setIte
 function notify(title,body,tag,url){if(!canNotify()||Notification.permission!="granted")return;
  const o={body,tag,icon:"icon-192.png",badge:"icon-192.png",data:{url:url||"./"}};
  if(swReg&&swReg.showNotification)swReg.showNotification(title,o);else try{new Notification(title,o)}catch(e){}}
-function dueItems(){const t=today(),tm=iso(new Date(Date.now()+864e5));return hw.filter(h=>!h.done&&(h.due<t||h.due==t||h.due==tm))}
 function checkDue(force){if(!canNotify()||Notification.permission!="granted")return;
  if(!force&&!remindOn())return;if(!force&&!pastRemindTime())return;
- const items=dueItems();if(!items.length)return;
+ const {late,dt,dn,items,ns,nsi}=openHorizon();if(!items.length)return;
  const sent=JSON.parse(localStorage.getItem("nfSent")||"{}"),k=today();
  if(!force&&sent[k])return;
- const list=items.map(h=>h.title+" ("+h.cls+")").join(", ");
- notify("Time to do your homework",list,"hw-remind","./#hw");
+ const bits=[];
+ if(late.length)bits.push(late.length+" late ("+late.map(h=>shortCls(h.cls)).join(", ")+")");
+ if(dt.length)bits.push(dt.length+" due today ("+shortNice(new Date())+"): "+dt.map(h=>shortCls(h.cls)).join(", "));
+ if(dn.length){const isTm=ns&&nsi==iso(new Date(Date.now()+864e5));const when=isTm?"tomorrow ("+shortNice(ns)+")":shortNice(ns);
+  bits.push(dn.length+" homework items for "+when+": "+dn.map(h=>shortCls(h.cls)).join(", "))}
+ notify("Time to do your homework",bits.join(". "),"hw-remind","./#hw");
  sent[k]=1;localStorage.setItem("nfSent",JSON.stringify(sent))}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkDue(false);if(swReg)swReg.update()}});
-all();nfUI();setTimeout(()=>checkDue(false),1500);tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
+all();nfUI();autoUI();setTimeout(()=>checkDue(false),1500);tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
 </script>
 </body>
 </html>
