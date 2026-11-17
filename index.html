@@ -76,6 +76,14 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 .cal .c i{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red)}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.upd{position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:20;background:var(--card);color:var(--text);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);transform:translateY(-150%);transition:transform .35s}
+.upd.show{transform:none}.upd b{flex:1;font-size:15px}.upd button{border:none;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px}
+.upd .go{background:var(--a);color:#fff}.upd .no{background:none;color:var(--muted)}
+.notif{display:flex;align-items:center;gap:10px}.notif .t{flex:1}.notif button{border:none;border-radius:10px;padding:9px 14px;font-weight:700;background:var(--a);color:#fff;font-size:14px}
+.notif button.on{background:var(--b)}
+.quote{background:linear-gradient(135deg,#7c3aed,#db2777);color:#fff}
+.quote h2{color:rgba(255,255,255,.75)}.quote .q{font-size:19px;font-weight:700;line-height:1.35}
+.quote .who{margin-top:10px;font-size:14px;opacity:.9}.quote .who b{font-weight:800}
 .tip{font-size:13px;color:var(--muted);line-height:1.45}
 </style>
 </head>
@@ -90,6 +98,7 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 
 <main>
 <section class="page on" id="p-today">
+  <div class="card quote"><h2>✨ Anime quote of the day</h2><div class="q" id="qTxt"></div><div class="who" id="qWho"></div></div>
   <div class="card" id="clsCard"><h2>Classes</h2><div id="clsList"></div></div>
   <div class="card"><h2>Homework due</h2><div id="dueList"></div></div>
   <div class="card"><h2>Gym</h2><div id="gymToday"></div></div>
@@ -97,6 +106,7 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 </section>
 
 <section class="page" id="p-hw">
+  <div class="card notif"><div class="t"><b>Homework alerts</b><div class="meta" id="nfTxt"></div></div><button id="nfBtn">Turn on</button></div>
   <div class="card">
     <h2>New assignment</h2>
     <input id="hwTitle" placeholder="e.g. Chapter 5 worksheet" enterkeyhint="done">
@@ -137,8 +147,10 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
   <button data-p="gym"><span>🏋️</span>Gym</button>
 </nav>
 <div class="toast" id="toast"></div>
+<div class="upd" id="upd"><span>✨</span><b>A new version is ready</b><button class="no" id="updNo">Later</button><button class="go" id="updGo">Update</button></div>
 
 <script>
+const QUOTES=[{"q": "People's dreams... never end!", "c": "Marshall D. Teach", "a": "One Piece"}, {"q": "I don't want to conquer anything. I just think the guy with the most freedom in this whole ocean is the Pirate King!", "c": "Monkey D. Luffy", "a": "One Piece"}, {"q": "When do you think people die? When they are forgotten.", "c": "Dr. Hiriluk", "a": "One Piece"}, {"q": "Nothing happened.", "c": "Roronoa Zoro", "a": "One Piece"}, {"q": "I'm not gonna run away, I never go back on my word! That's my nindo: my ninja way!", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "Those who break the rules are scum, but those who abandon their friends are worse than scum.", "c": "Kakashi Hatake", "a": "Naruto"}, {"q": "Hard work is worthless for those that don't believe in themselves.", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "A dropout will beat a genius through hard work.", "c": "Rock Lee", "a": "Naruto"}, {"q": "A place where someone still thinks about you is a place you can call home.", "c": "Jiraiya", "a": "Naruto Shippuden"}, {"q": "People live their lives bound by what they accept as correct and true.", "c": "Itachi Uchiha", "a": "Naruto Shippuden"}, {"q": "A lesson without pain is meaningless. That's because no one can gain without sacrificing something.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "Stand up and walk. Keep moving forward. You've got two good legs.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "If you win, you live. If you lose, you die. If you don't fight, you can't win!", "c": "Eren Yeager", "a": "Attack on Titan"}, {"q": "The only thing we're allowed to do is believe that we won't regret the choice we made.", "c": "Levi Ackerman", "a": "Attack on Titan"}, {"q": "This world is cruel, but also very beautiful.", "c": "Mikasa Ackerman", "a": "Attack on Titan"}, {"q": "Set your heart ablaze.", "c": "Kyojuro Rengoku", "a": "Demon Slayer"}, {"q": "No matter how many people you may lose, you have no choice but to go on living.", "c": "Tanjiro Kamado", "a": "Demon Slayer"}, {"q": "Throughout heaven and earth, I alone am the honored one.", "c": "Satoru Gojo", "a": "Jujutsu Kaisen"}, {"q": "You should enjoy the little detours to the fullest. Because that's where you'll find the things more important than what you want.", "c": "Ging Freecss", "a": "Hunter x Hunter"}, {"q": "Plus Ultra!", "c": "All Might", "a": "My Hero Academia"}, {"q": "It's fine now. Why? Because I am here!", "c": "All Might", "a": "My Hero Academia"}, {"q": "Whatever happens, happens.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'm not going there to die. I'm going to find out if I'm really alive.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'll take a potato chip... and eat it!", "c": "Light Yagami", "a": "Death Note"}, {"q": "El Psy Kongroo.", "c": "Rintaro Okabe", "a": "Steins;Gate"}, {"q": "Don't believe in yourself. Believe in me! Believe in the Kamina who believes in you!", "c": "Kamina", "a": "Gurren Lagann"}, {"q": "Just who the hell do you think I am?!", "c": "Simon", "a": "Gurren Lagann"}, {"q": "I am the bone of my sword.", "c": "Archer", "a": "Fate/stay night: Unlimited Blade Works"}, {"q": "100 push-ups, 100 sit-ups, 100 squats, and a 10 km run every single day!", "c": "Saitama", "a": "One Punch Man"}, {"q": "Surpassing your limits right here, right now! That's my magic!", "c": "Asta", "a": "Black Clover"}, {"q": "Talent is something you make bloom, instinct is something you polish.", "c": "Toru Oikawa", "a": "Haikyu!!"}, {"q": "You can die anytime, but living takes true courage.", "c": "Kenshin Himura", "a": "Rurouni Kenshin"}, {"q": "If you don't like your destiny, don't accept it.", "c": "Naruto Uzumaki", "a": "Naruto"}];
 const A=["Life Science: Bio","English 3","Spanish 3","Global Studies"];
 const B=["Geometry","Religion 3","Physical Education 3","Foundation: Software Development"];
 const GYM={upper:[["Bench press or push-ups","3 × 8–12"],["Dumbbell or barbell rows","3 × 8–12"],["Overhead shoulder press","3 × 8–12"],["Lat pulldowns or pull-ups","3 × 8–12"],["Bicep curls","3 × 10–12"],["Tricep dips or pushdowns","3 × 10–12"]],
@@ -159,7 +171,10 @@ function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");cle
 function dueText(h){if(h.done)return"Done";const t=today(),tm=iso(new Date(Date.now()+864e5));
  if(h.due<t)return'<span class="late">Late · was due '+nice(fromIso(h.due))+"</span>";if(h.due==t)return'<span class="soon">Due today</span>';if(h.due==tm)return'<span class="soon">Due tomorrow</span>';return"Due "+nice(fromIso(h.due))}
 const hwItem=h=>`<div class="hw ${h.done?"done":""}"><button class="chk" data-t="${h.id}">${h.done?"✓":""}</button><div class="t"><div class="title">${esc(h.title)}</div><div class="meta">${esc(h.cls)} · ${dueText(h)}</div></div><button class="x" data-d="${h.id}">✕</button></div>`;
-function renderToday(){const t=type(view),isToday=iso(view)==today();
+function renderQuote(){const d=new Date(),n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+ let i=((n*7919)%QUOTES.length+QUOTES.length)%QUOTES.length;const q=QUOTES[i];
+ $("qTxt").textContent="“"+q.q+"”";$("qWho").innerHTML="— <b>"+esc(q.c)+"</b>, "+esc(q.a)}
+function renderToday(){renderQuote();const t=type(view),isToday=iso(view)==today();
  $("hero").className="hero "+(t||"off");$("heroDate").textContent=isToday?"Today · "+nice(view):nice(view);
  $("heroTitle").textContent=t?t+" Day":"No School";
  $("heroSub").textContent=t?(t=="A"?"Upper body at the gym 💪":"Lower body at the gym 🦵"):"Rest up for the week.";
@@ -207,8 +222,35 @@ document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[
  else if(el.dataset.go){view=fromIso(el.dataset.go);renderToday()}
  else if(el.dataset.cal){view=fromIso(el.dataset.cal);renderToday();go("today")}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js");
-all();tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
+let swReg=null,refreshing=false;
+function showUpd(w){$("upd").classList.add("show");$("updGo").onclick=()=>{w.postMessage("skip");$("upd").classList.remove("show")};notify("A/B Planner updated","A new version is ready. Tap Update in the app.","upd")}
+$("updNo").onclick=()=>$("upd").classList.remove("show");
+if("serviceWorker"in navigator){
+ navigator.serviceWorker.addEventListener("controllerchange",()=>{if(refreshing)return;refreshing=true;location.reload()});
+ navigator.serviceWorker.register("sw.js").then(reg=>{swReg=reg;
+  if(reg.waiting&&navigator.serviceWorker.controller)showUpd(reg.waiting);
+  reg.addEventListener("updatefound",()=>{const w=reg.installing;w.addEventListener("statechange",()=>{if(w.state=="installed"&&navigator.serviceWorker.controller)showUpd(w)})});
+  setInterval(()=>reg.update(),15*60*1000)});
+}
+const canNotify=()=>"Notification"in window;
+function nfUI(){const b=$("nfBtn"),t=$("nfTxt");
+ if(!canNotify()){t.textContent="On iPhone, add the app to your Home Screen first, then open it from there.";b.style.display="none";return}
+ const p=Notification.permission;b.style.display=p=="granted"?"none":"";
+ t.textContent=p=="granted"?"On · you'll be alerted about homework due today, tomorrow, or late.":p=="denied"?"Blocked · allow notifications for this app in your phone's Settings.":"Get alerts for homework due today, tomorrow, or late.";}
+$("nfBtn").onclick=async()=>{if(!canNotify())return;const p=await Notification.requestPermission();nfUI();if(p=="granted"){notify("Notifications on ✓","You'll get homework alerts from A/B Planner.","hello");checkDue(true)}};
+function notify(title,body,tag){if(!canNotify()||Notification.permission!="granted")return;
+ const o={body,tag,icon:"icon-192.png",badge:"icon-192.png"};
+ if(swReg&&swReg.showNotification)swReg.showNotification(title,o);else try{new Notification(title,o)}catch(e){}}
+function checkDue(force){if(!canNotify()||Notification.permission!="granted")return;
+ const t=today(),tm=iso(new Date(Date.now()+864e5)),sent=JSON.parse(localStorage.getItem("nfSent")||"{}");
+ const late=hw.filter(h=>!h.done&&h.due<t),dt=hw.filter(h=>!h.done&&h.due==t),dm=hw.filter(h=>!h.done&&h.due==tm);
+ const list=a=>a.map(h=>h.title+" ("+h.cls+")").join(", ");
+ const msgs=[];if(dt.length)msgs.push(["Due today: "+dt.length,list(dt)]);if(dm.length)msgs.push(["Due tomorrow: "+dm.length,list(dm)]);if(late.length)msgs.push(["Late: "+late.length,list(late)]);
+ const k=t+"-"+(new Date().getHours()<15?"am":"pm");
+ if(msgs.length&&(force||!sent[k])){msgs.forEach((m,i)=>notify("📚 "+m[0],m[1],"hw"+i));sent[k]=1;localStorage.setItem("nfSent",JSON.stringify(sent))}}
+setInterval(()=>checkDue(false),5*60*1000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkDue(false);if(swReg)swReg.update()}});
+all();nfUI();setTimeout(()=>checkDue(false),1500);tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
 </script>
 </body>
 </html>
