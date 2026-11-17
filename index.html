@@ -76,8 +76,8 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 .cal .c i{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--red)}
 .legend{display:flex;gap:14px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
 .legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
-.upd{position:fixed;left:12px;right:12px;top:calc(10px + env(safe-area-inset-top));z-index:20;background:var(--card);color:var(--text);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);transform:translateY(-150%);transition:transform .35s}
-.upd.show{transform:none}.upd b{flex:1;font-size:15px}.upd button{border:none;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px}
+.upd{position:fixed;left:12px;right:12px;bottom:calc(70px + env(safe-area-inset-bottom));z-index:20;background:var(--card);color:var(--text);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,.25);transform:translateY(calc(100% + 90px));pointer-events:none;transition:transform .35s}
+.upd.show{transform:none;pointer-events:auto}.upd b{flex:1;font-size:15px}.upd button{border:none;border-radius:10px;padding:9px 14px;font-weight:700;font-size:14px}
 .upd .go{background:var(--a);color:#fff}.upd .no{background:none;color:var(--muted)}
 .notif{display:flex;align-items:center;gap:10px}.notif .t{flex:1}.notif button{border:none;border-radius:10px;padding:9px 14px;font-weight:700;background:var(--a);color:#fff;font-size:14px}
 .notif button.on{background:var(--b)}
@@ -85,6 +85,24 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 .quote h2{color:rgba(255,255,255,.75)}.quote .q{font-size:19px;font-weight:700;line-height:1.35}
 .quote .who{margin-top:10px;font-size:14px;opacity:.9}.quote .who b{font-weight:800}
 .tip{font-size:13px;color:var(--muted);line-height:1.45}
+.switch{position:relative;width:48px;height:28px;flex:none;display:inline-block}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;background:var(--chip);border-radius:999px;transition:.2s;border:1px solid var(--line)}
+.switch span:before{content:"";position:absolute;width:22px;height:22px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked+span{background:var(--b);border-color:var(--b)}
+.switch input:checked+span:before{transform:translateX(20px)}
+input[type=time]{-webkit-appearance:auto;appearance:auto;min-height:44px}
+.nudge{background:linear-gradient(135deg,#9a3412,#ea580c);color:#fff}
+.nudge h2{color:rgba(255,255,255,.8)}
+.nudge .lead{font-size:20px;font-weight:800;line-height:1.3;margin-bottom:6px}
+.nudge .sub{font-size:14px;opacity:.92;margin-bottom:10px;line-height:1.4}
+.nudge .btn{background:#fff;color:#9a3412;margin-top:4px}
+.nudge.soft{background:linear-gradient(135deg,#1e3a8a,#2563eb)}
+.nudge.soft .btn{color:#1e3a8a}
+.ver{display:flex;align-items:center;gap:12px;scroll-margin-bottom:calc(96px + env(safe-area-inset-bottom))}
+.ver .t{flex:1;min-width:0}
+.ver button{border:none;border-radius:10px;padding:9px 12px;font-weight:700;background:var(--chip);color:var(--text);font-size:14px;flex:none}
+.rule{height:1px;background:var(--line);margin:12px 0}
 </style>
 </head>
 <body>
@@ -98,15 +116,32 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 
 <main>
 <section class="page on" id="p-today">
+  <div id="hwNudge"></div>
   <div class="card quote"><h2>✨ Anime quote of the day</h2><div class="q" id="qTxt"></div><div class="who" id="qWho"></div></div>
   <div class="card" id="clsCard"><h2>Classes</h2><div id="clsList"></div></div>
   <div class="card"><h2>Homework due</h2><div id="dueList"></div></div>
   <div class="card"><h2>Gym</h2><div id="gymToday"></div></div>
   <div class="card"><h2>This week</h2><div class="week" id="week"></div></div>
+  <div class="card ver">
+    <div class="t"><b>Version <span id="verNum"></span></b><div class="meta" id="updSt">Tap to check for updates</div></div>
+    <button id="updChk">Check for updates</button>
+  </div>
 </section>
 
 <section class="page" id="p-hw">
-  <div class="card notif"><div class="t"><b>Homework alerts</b><div class="meta" id="nfTxt"></div></div><button id="nfBtn">Turn on</button></div>
+  <div class="card">
+    <h2>Homework alerts</h2>
+    <div class="notif"><div class="t"><b>Notifications</b><div class="meta" id="nfTxt"></div></div><button id="nfBtn">Turn on</button></div>
+    <div class="rule"></div>
+    <div class="notif">
+      <div class="t"><b>Daily reminder</b><div class="meta" id="rmTxt"></div></div>
+      <label class="switch"><input type="checkbox" id="rmOn"><span></span></label>
+    </div>
+    <div class="row" style="margin-top:10px;align-items:center">
+      <label class="meta" for="rmTime" style="flex:none;font-weight:600">Time</label>
+      <input id="rmTime" type="time">
+    </div>
+  </div>
   <div class="card">
     <h2>New assignment</h2>
     <input id="hwTitle" placeholder="e.g. Chapter 5 worksheet" enterkeyhint="done">
@@ -150,6 +185,7 @@ nav.tabs button span{font-size:23px}nav.tabs button.on{color:var(--a)}
 <div class="upd" id="upd"><span>✨</span><b>A new version is ready</b><button class="no" id="updNo">Later</button><button class="go" id="updGo">Update</button></div>
 
 <script>
+const APP_VERSION=5;
 const QUOTES=[{"q": "People's dreams... never end!", "c": "Marshall D. Teach", "a": "One Piece"}, {"q": "I don't want to conquer anything. I just think the guy with the most freedom in this whole ocean is the Pirate King!", "c": "Monkey D. Luffy", "a": "One Piece"}, {"q": "When do you think people die? When they are forgotten.", "c": "Dr. Hiriluk", "a": "One Piece"}, {"q": "Nothing happened.", "c": "Roronoa Zoro", "a": "One Piece"}, {"q": "I'm not gonna run away, I never go back on my word! That's my nindo: my ninja way!", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "Those who break the rules are scum, but those who abandon their friends are worse than scum.", "c": "Kakashi Hatake", "a": "Naruto"}, {"q": "Hard work is worthless for those that don't believe in themselves.", "c": "Naruto Uzumaki", "a": "Naruto"}, {"q": "A dropout will beat a genius through hard work.", "c": "Rock Lee", "a": "Naruto"}, {"q": "A place where someone still thinks about you is a place you can call home.", "c": "Jiraiya", "a": "Naruto Shippuden"}, {"q": "People live their lives bound by what they accept as correct and true.", "c": "Itachi Uchiha", "a": "Naruto Shippuden"}, {"q": "A lesson without pain is meaningless. That's because no one can gain without sacrificing something.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "Stand up and walk. Keep moving forward. You've got two good legs.", "c": "Edward Elric", "a": "Fullmetal Alchemist: Brotherhood"}, {"q": "If you win, you live. If you lose, you die. If you don't fight, you can't win!", "c": "Eren Yeager", "a": "Attack on Titan"}, {"q": "The only thing we're allowed to do is believe that we won't regret the choice we made.", "c": "Levi Ackerman", "a": "Attack on Titan"}, {"q": "This world is cruel, but also very beautiful.", "c": "Mikasa Ackerman", "a": "Attack on Titan"}, {"q": "Set your heart ablaze.", "c": "Kyojuro Rengoku", "a": "Demon Slayer"}, {"q": "No matter how many people you may lose, you have no choice but to go on living.", "c": "Tanjiro Kamado", "a": "Demon Slayer"}, {"q": "Throughout heaven and earth, I alone am the honored one.", "c": "Satoru Gojo", "a": "Jujutsu Kaisen"}, {"q": "You should enjoy the little detours to the fullest. Because that's where you'll find the things more important than what you want.", "c": "Ging Freecss", "a": "Hunter x Hunter"}, {"q": "Plus Ultra!", "c": "All Might", "a": "My Hero Academia"}, {"q": "It's fine now. Why? Because I am here!", "c": "All Might", "a": "My Hero Academia"}, {"q": "Whatever happens, happens.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'm not going there to die. I'm going to find out if I'm really alive.", "c": "Spike Spiegel", "a": "Cowboy Bebop"}, {"q": "I'll take a potato chip... and eat it!", "c": "Light Yagami", "a": "Death Note"}, {"q": "El Psy Kongroo.", "c": "Rintaro Okabe", "a": "Steins;Gate"}, {"q": "Don't believe in yourself. Believe in me! Believe in the Kamina who believes in you!", "c": "Kamina", "a": "Gurren Lagann"}, {"q": "Just who the hell do you think I am?!", "c": "Simon", "a": "Gurren Lagann"}, {"q": "I am the bone of my sword.", "c": "Archer", "a": "Fate/stay night: Unlimited Blade Works"}, {"q": "100 push-ups, 100 sit-ups, 100 squats, and a 10 km run every single day!", "c": "Saitama", "a": "One Punch Man"}, {"q": "Surpassing your limits right here, right now! That's my magic!", "c": "Asta", "a": "Black Clover"}, {"q": "Talent is something you make bloom, instinct is something you polish.", "c": "Toru Oikawa", "a": "Haikyu!!"}, {"q": "You can die anytime, but living takes true courage.", "c": "Kenshin Himura", "a": "Rurouni Kenshin"}, {"q": "If you don't like your destiny, don't accept it.", "c": "Naruto Uzumaki", "a": "Naruto"}];
 const A=["Life Science: Bio","English 3","Spanish 3","Global Studies"];
 const B=["Geometry","Religion 3","Physical Education 3","Foundation: Software Development"];
@@ -174,7 +210,26 @@ const hwItem=h=>`<div class="hw ${h.done?"done":""}"><button class="chk" data-t=
 function renderQuote(){const d=new Date(),n=Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
  let i=((n*7919)%QUOTES.length+QUOTES.length)%QUOTES.length;const q=QUOTES[i];
  $("qTxt").textContent="“"+q.q+"”";$("qWho").innerHTML="— <b>"+esc(q.c)+"</b>, "+esc(q.a)}
-function renderToday(){renderQuote();const t=type(view),isToday=iso(view)==today();
+function renderNudge(){const el=$("hwNudge");if(!el)return;
+ if(iso(view)!=today()){el.innerHTML="";return}
+ const t=today(),tm=iso(new Date(Date.now()+864e5));
+ const late=hw.filter(h=>!h.done&&h.due<t),dt=hw.filter(h=>!h.done&&h.due==t),dm=hw.filter(h=>!h.done&&h.due==tm);
+ const items=[...late,...dt,...dm];
+ if(items.length){
+  const n=items.length,bits=[];
+  if(late.length)bits.push(late.length+" late");
+  if(dt.length)bits.push(dt.length+" due today");
+  if(dm.length)bits.push(dm.length+" due tomorrow");
+  const subj=[...new Set(items.map(h=>h.cls))].join(" · ");
+  el.innerHTML=`<div class="card nudge"><h2>Do your homework</h2><div class="lead">${n} assignment${n>1?"s":""} to finish</div><div class="sub">${bits.join(" · ")}<br>${esc(subj)}</div><button class="btn" id="nudgeGo">Open Homework</button></div>`;
+ }else{
+  const nd=new Date(Date.now()+864e5),typ=type(nd);
+  if(!typ){el.innerHTML="";return}
+  const cls=typ=="A"?A:B;
+  el.innerHTML=`<div class="card nudge soft"><h2>Tomorrow is a ${typ} day</h2><div class="lead">Add any homework you got</div><div class="sub">${cls.map(esc).join(" · ")}</div><button class="btn" id="nudgeGo">Add homework</button></div>`;
+ }
+ const b=$("nudgeGo");if(b)b.onclick=()=>go("hw")}
+function renderToday(){renderQuote();renderNudge();const t=type(view),isToday=iso(view)==today();
  $("hero").className="hero "+(t||"off");$("heroDate").textContent=isToday?"Today · "+nice(view):nice(view);
  $("heroTitle").textContent=t?t+" Day":"No School";
  $("heroSub").textContent=t?(t=="A"?"Upper body at the gym 💪":"Lower body at the gym 🦵"):"Rest up for the week.";
@@ -203,10 +258,15 @@ $("cPrev").onclick=()=>{calM.setMonth(calM.getMonth()-1);renderCal()};$("cNext")
 let lastDay=today();
 function tick(){const d=new Date();let h=d.getHours();const p=h>=12?"PM":"AM";h=h%12||12;
  $("clkT").textContent=h+":"+String(d.getMinutes()).padStart(2,"0");$("clkP").textContent=p;$("clkS").textContent=":"+String(d.getSeconds()).padStart(2,"0");
- if(today()!=lastDay){const wasToday=iso(view)==lastDay;lastDay=today();if(wasToday)view=noon(new Date());all()}}
+ if(today()!=lastDay){const wasToday=iso(view)==lastDay;lastDay=today();if(wasToday)view=noon(new Date());all()}
+ if(d.getHours()+":"+d.getMinutes()!=tick._hm){tick._hm=d.getHours()+":"+d.getMinutes();checkDue(false)}}
 const all=()=>{renderToday();renderHw();renderGym();renderCal()};
-function go(p){document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.p==p));document.querySelectorAll(".page").forEach(s=>s.classList.toggle("on",s.id=="p-"+p));$("dayNav").style.display=p=="today"?"":"none";scrollTo(0,0)}
+function go(p){if(p!="hw"&&p!="cal"&&p!="gym")p="today";
+ document.querySelectorAll("nav.tabs button").forEach(b=>b.classList.toggle("on",b.dataset.p==p));document.querySelectorAll(".page").forEach(s=>s.classList.toggle("on",s.id=="p-"+p));$("dayNav").style.display=p=="today"?"":"none";
+ const h=p=="today"?"#":"#"+p;if(location.hash!==h&&!(p=="today"&&(location.hash===""||location.hash==="#")))history.replaceState(null,"",p=="today"?location.pathname+location.search:h);
+ scrollTo(0,0)}
 document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>go(b.dataset.p));
+window.addEventListener("hashchange",()=>go(location.hash.slice(1)));
 $("prev").onclick=()=>{view.setDate(view.getDate()-1);renderToday()};$("next").onclick=()=>{view.setDate(view.getDate()+1);renderToday()};$("todayBtn").onclick=()=>{view=noon(new Date());renderToday()};
 $("hwClass").innerHTML='<optgroup label="A day">'+A.map(c=>`<option>${c}</option>`).join("")+'</optgroup><optgroup label="B day">'+B.map(c=>`<option>${c}</option>`).join("")+"</optgroup>";
 function add(){const t=$("hwTitle").value.trim();if(!t){$("hwTitle").focus();return}const cls=$("hwClass").value,due=$("hwDue").value||nextClassDate(cls);
@@ -223,32 +283,59 @@ document.body.addEventListener("click",e=>{const el=e.target.closest("[data-t],[
  else if(el.dataset.cal){view=fromIso(el.dataset.cal);renderToday();go("today")}});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)all()});
 let swReg=null,refreshing=false;
-function showUpd(w){$("upd").classList.add("show");$("updGo").onclick=()=>{w.postMessage("skip");$("upd").classList.remove("show")};notify("A/B Planner updated","A new version is ready. Tap Update in the app.","upd")}
+function applyUpdate(w){if(w){w.postMessage("skip");$("upd").classList.remove("show")}}
+function markUpdAvail(w){$("updSt").textContent="Update available — Update now";$("updChk").textContent="Update now";$("updChk").onclick=()=>applyUpdate(w)}
+function showUpd(w){$("upd").classList.add("show");$("updGo").onclick=()=>applyUpdate(w);markUpdAvail(w);notify("A/B Planner updated","A new version is ready. Tap Update in the app.","upd")}
 $("updNo").onclick=()=>$("upd").classList.remove("show");
+$("verNum").textContent=APP_VERSION;
+async function checkUpdates(){
+ const st=$("updSt");if(!swReg){st.textContent="Couldn't check right now";return}
+ st.textContent="Checking…";$("updChk").disabled=true;
+ try{
+  await swReg.update();
+  let w=swReg.waiting||swReg.installing;
+  if(w&&w.state!="installed")await new Promise(res=>{const t=setTimeout(res,8000);w.addEventListener("statechange",()=>{if(w.state=="installed"||w.state=="redundant"){clearTimeout(t);res()}})});
+  w=swReg.waiting||(w&&w.state=="installed"?w:null);
+  if(w&&navigator.serviceWorker.controller){showUpd(w)}
+  else{st.textContent="You're up to date";$("updChk").textContent="Check for updates";$("updChk").onclick=()=>checkUpdates()}
+ }catch(e){st.textContent="Couldn't check right now"}
+ $("updChk").disabled=false;
+}
+$("updChk").onclick=()=>checkUpdates();
 if("serviceWorker"in navigator){
  navigator.serviceWorker.addEventListener("controllerchange",()=>{if(refreshing)return;refreshing=true;location.reload()});
+ navigator.serviceWorker.addEventListener("message",e=>{const d=e.data||{};if(d==="open-hw"||d.type==="open"){const p=((d.url||"#hw").split("#")[1]||"hw");go(p)}});
  navigator.serviceWorker.register("sw.js").then(reg=>{swReg=reg;
   if(reg.waiting&&navigator.serviceWorker.controller)showUpd(reg.waiting);
   reg.addEventListener("updatefound",()=>{const w=reg.installing;w.addEventListener("statechange",()=>{if(w.state=="installed"&&navigator.serviceWorker.controller)showUpd(w)})});
   setInterval(()=>reg.update(),15*60*1000)});
 }
 const canNotify=()=>"Notification"in window;
-function nfUI(){const b=$("nfBtn"),t=$("nfTxt");
- if(!canNotify()){t.textContent="On iPhone, add the app to your Home Screen first, then open it from there.";b.style.display="none";return}
+const remindOn=()=>localStorage.getItem("remindOn")!="0";
+const remindTime=()=>localStorage.getItem("remindTime")||"19:00";
+function fmtTime(t){const[H,M]=(t||"19:00").split(":").map(Number);return(H%12||12)+":"+String(M).padStart(2,"0")+" "+(H>=12?"PM":"AM")}
+function pastRemindTime(){const[H,M]=remindTime().split(":").map(Number);const n=new Date();return n.getHours()>H||(n.getHours()==H&&n.getMinutes()>=M)}
+function rmUI(){$("rmOn").checked=remindOn();$("rmTime").value=remindTime();
+ $("rmTxt").textContent=remindOn()?"You'll be reminded at "+fmtTime(remindTime())+" if homework is due tomorrow, today, or late.":"Daily reminder is off."}
+function nfUI(){const b=$("nfBtn"),t=$("nfTxt");rmUI();
+ if(!canNotify()){t.textContent="On iPhone, add the app to your Home Screen first, then open it from there to get alerts.";b.style.display="none";return}
  const p=Notification.permission;b.style.display=p=="granted"?"none":"";
- t.textContent=p=="granted"?"On · you'll be alerted about homework due today, tomorrow, or late.":p=="denied"?"Blocked · allow notifications for this app in your phone's Settings.":"Get alerts for homework due today, tomorrow, or late.";}
-$("nfBtn").onclick=async()=>{if(!canNotify())return;const p=await Notification.requestPermission();nfUI();if(p=="granted"){notify("Notifications on ✓","You'll get homework alerts from A/B Planner.","hello");checkDue(true)}};
-function notify(title,body,tag){if(!canNotify()||Notification.permission!="granted")return;
- const o={body,tag,icon:"icon-192.png",badge:"icon-192.png"};
+ t.textContent=p=="granted"?"On · you'll get a reminder at the time below when homework is due.":p=="denied"?"Blocked · allow notifications for this app in your phone's Settings.":"Turn on to get a reminder to do your homework.";}
+$("nfBtn").onclick=async()=>{if(!canNotify())return;const p=await Notification.requestPermission();nfUI();if(p=="granted"){notify("Notifications on ✓","You'll get homework reminders from A/B Planner.","hello");checkDue(true)}};
+$("rmOn").onchange=()=>{localStorage.setItem("remindOn",$("rmOn").checked?"1":"0");rmUI();if($("rmOn").checked)checkDue(false)};
+$("rmTime").onchange=()=>{const v=$("rmTime").value||"19:00";localStorage.setItem("remindTime",v);rmUI()};
+function notify(title,body,tag,url){if(!canNotify()||Notification.permission!="granted")return;
+ const o={body,tag,icon:"icon-192.png",badge:"icon-192.png",data:{url:url||"./"}};
  if(swReg&&swReg.showNotification)swReg.showNotification(title,o);else try{new Notification(title,o)}catch(e){}}
+function dueItems(){const t=today(),tm=iso(new Date(Date.now()+864e5));return hw.filter(h=>!h.done&&(h.due<t||h.due==t||h.due==tm))}
 function checkDue(force){if(!canNotify()||Notification.permission!="granted")return;
- const t=today(),tm=iso(new Date(Date.now()+864e5)),sent=JSON.parse(localStorage.getItem("nfSent")||"{}");
- const late=hw.filter(h=>!h.done&&h.due<t),dt=hw.filter(h=>!h.done&&h.due==t),dm=hw.filter(h=>!h.done&&h.due==tm);
- const list=a=>a.map(h=>h.title+" ("+h.cls+")").join(", ");
- const msgs=[];if(dt.length)msgs.push(["Due today: "+dt.length,list(dt)]);if(dm.length)msgs.push(["Due tomorrow: "+dm.length,list(dm)]);if(late.length)msgs.push(["Late: "+late.length,list(late)]);
- const k=t+"-"+(new Date().getHours()<15?"am":"pm");
- if(msgs.length&&(force||!sent[k])){msgs.forEach((m,i)=>notify("📚 "+m[0],m[1],"hw"+i));sent[k]=1;localStorage.setItem("nfSent",JSON.stringify(sent))}}
-setInterval(()=>checkDue(false),5*60*1000);
+ if(!force&&!remindOn())return;if(!force&&!pastRemindTime())return;
+ const items=dueItems();if(!items.length)return;
+ const sent=JSON.parse(localStorage.getItem("nfSent")||"{}"),k=today();
+ if(!force&&sent[k])return;
+ const list=items.map(h=>h.title+" ("+h.cls+")").join(", ");
+ notify("Time to do your homework",list,"hw-remind","./#hw");
+ sent[k]=1;localStorage.setItem("nfSent",JSON.stringify(sent))}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){checkDue(false);if(swReg)swReg.update()}});
 all();nfUI();setTimeout(()=>checkDue(false),1500);tick();setInterval(tick,1000);if(location.hash.length>1)go(location.hash.slice(1));
 </script>
